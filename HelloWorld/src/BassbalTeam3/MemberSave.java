@@ -1,4 +1,4 @@
-package BassbalTeam;
+package BassbalTeam3;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 
 public class MemberSave {
 
@@ -42,10 +43,9 @@ public class MemberSave {
 		} catch (IOException e) {e.printStackTrace();}
 	}
 	
-	public int readfile(File file, HumanDto human[]) { //파일에서 읽어서 객체에 다시 넣기
+	public int readfile(File file, Map human) { //파일에서 읽어서 객체에 다시 넣기
 		HumanDto hp = null;
 		int number = 0;
-		int index = 0;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String str;
@@ -70,12 +70,12 @@ public class MemberSave {
 					int hit = Integer.parseInt(s[6]);
 					double hitAvg = Double.parseDouble(s[7]);
 					hp = new Batter(number, name, age, height, batCounter, hit, hitAvg);
+					number -= 1000;
 				}
-				human[index] = hp;
-				index++;
+				human.put(number, hp);
 			} br.close();
 		} catch (IOException e) {e.printStackTrace();}
-		if (number>2000) { number -= 1000; }
+		//if (number>2000) { number -= 1000; }
 		return number;
 	}
 

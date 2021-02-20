@@ -1,4 +1,4 @@
-package BassbalTeam;
+package BassbalTeam2;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,11 +9,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
-public class MemberSave {
+public class Fileproc {
 
 	File file;
 	
-	public MemberSave() {
+	public Fileproc() {
 		creatfile("C:\\Java\\tmp\\BaseballTeam.txt");
 	}
 	
@@ -42,7 +42,7 @@ public class MemberSave {
 		} catch (IOException e) {e.printStackTrace();}
 	}
 	
-	public int readfile(File file, HumanDto human[]) { //파일에서 읽어서 객체에 다시 넣기
+	public int readfile(File file, List human) { //파일에서 읽어서 객체에 다시 넣기
 		HumanDto hp = null;
 		int number = 0;
 		int index = 0;
@@ -71,7 +71,7 @@ public class MemberSave {
 					double hitAvg = Double.parseDouble(s[7]);
 					hp = new Batter(number, name, age, height, batCounter, hit, hitAvg);
 				}
-				human[index] = hp;
+				human.add(hp);
 				index++;
 			} br.close();
 		} catch (IOException e) {e.printStackTrace();}

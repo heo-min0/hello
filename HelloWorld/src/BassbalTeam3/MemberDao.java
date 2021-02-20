@@ -1,13 +1,15 @@
-package BassbalTeam;
+package BassbalTeam3;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 public class MemberDao {
 
-	//private List<String> human = new ArrayList<String>();
-	private HumanDto human[] = new HumanDto[30];
+	private Map<Integer, HumanDto> human = new HashMap<Integer, HumanDto>();
 	private int number;
 
 	public MemberDao() { }
@@ -22,7 +24,6 @@ public class MemberDao {
 
 	public void insert() {
 		System.out.println("*입력항목 : 투수/타자, 선수이름, 선수나이, 키(cm)"); // 항목 출력
-		int index = emptyIndex(); // 빈 row 찾기
 
 		int pos = (int)chkNum("투수/타자(1.투수 2.타자)"); // 15~69 투수
 		String name = chkStr("이름");
@@ -33,47 +34,36 @@ public class MemberDao {
 			int win = (int)chkNum("승수");
 			int lose = (int)chkNum("패수");
 			double defence = chkNum("방어률");
-			human[index] = new Pitcher(number, name, age, height, win, lose, defence);
+			human.put(number, new Pitcher(number, name, age, height, win, lose, defence));
 		} else {
 			int batCounter = (int) chkNum("타수");
 			int hit = (int) chkNum("안타수");
 			double hitAvg = chkNum("타율");
-			human[index] = new Batter(number+1000, name, age, height, batCounter, hit, hitAvg);
+			human.put(number+1000, new Batter(number+1000, name, age, height, batCounter, hit, hitAvg));
 		}
 		number++;
 	}
 
-	int emptyIndex() { // 빈 row 찾기
-		int index = 0;
-		for (int i = 0; i < human.length; i++) {
-			if (human[i] == null || human[i].getNumber() == 0) {
-				index = i;
-				break;
-			}
-		}
-		return index;
-	}
-
 	public void delete() {
-		int index[] = search();
-		if (index[0] < 0) { // 전부 -1, 일치하는게 없는거
+		int key[] = search();
+		if (key[0] < 0) { // 전부 -1, 일치하는게 없는거
 			System.out.println("해당 선수를 찾을 수 없습니다.");
 			return;
-		} else if (index[1] > 0) { // 1번지가 값이 있을때, 최소 2개 이상
+		} else if (key[1] > 0) { // 1번지가 값이 있을때, 최소 2개 이상
 			int num = (int) chkNum("몇 번째 선수를 삭제할까요?") - 1;
-			int n = index[num];
-			human[n] = new HumanDto(0, "", 0, 0);
-			System.out.println("삭제가 완료되었습니다.");
+			int n = key[num];
+			HumanDto h = human.remove(n);
+			System.out.println(h.getName()+"선수의 삭제가 완료되었습니다.");
 			return;
 		} // 지나왔다면 값이 1개라는거라서 바로 삭제
-		human[index[0]] = new HumanDto(0, "", 0, 0);
-		System.out.println("삭제가 완료되었습니다.");
+		HumanDto h = human.remove(key[0]);
+		System.out.println(h.getName()+"선수의 삭제가 완료되었습니다.");
 	}
 
 	public void select() {
-		int index[] = search();
-		for (int i = 0; i < index.length; i++) {
-			if (index[i] < 0) {
+		int key[] = search();
+		for (int i = 0; i < key.length; i++) {
+			if (key[i] < 0) {
 				System.out.println("해당 선수를 찾을 수 없습니다.");
 				return;
 			}
@@ -81,61 +71,64 @@ public class MemberDao {
 	}
 
 	int[] search() {
-		int number = -1, age = -1;
+		int number = -1;
 		String name = "";
-		int k = 0; //인덱스 배열의 인덱스
-		int index[] = new int[human.length]; //여러명 검색될 수 있어서 배열사용
-		for (int i = 0; i < index.length; i++) { //-1로 초기화
-			index[i] = -1;
+		
+		int w = 0; //인덱스 배열의 인덱스
+		int key[] = new int[human.size()]; //여러명 검색될 수 있어서 배열사용
+		for (int i = 0; i < key.length; i++) { //-1로 초기화
+			key[i] = -1;
 		}
 		int num = (int) chkNum("어떤 항목으로 찾으시겠습니까?\n1.선수번호  2.이름");
 		switch (num) {
 			case 1:	number=(int)chkNum("선수번호"); break;
 			case 2: name  =		chkStr("이름");	  break;
 		}
-		for (int i = 0; i < human.length; i++) {
-			if (human[i] != null && human[i].getNumber() != 0) {
-				HumanDto hd = human[i];
-				if (hd.getNumber() == number) {
-					index[k] = i; k++;
-					System.out.println(k + ". " + hd.toString()); // 앞에 라인넘버, 여러명일때 사용하려고
-				} else if (hd.getName().equals(name)) {
-					index[k] = i; k++;
-					System.out.println(k + ". "+hd.toString());
-				}
+		
+		Iterator<Integer> it = human.keySet().iterator(); // 모든 키(주소값)를 가져옴 
+		while(it.hasNext()) {
+			int k = it.next();
+			HumanDto h= human.get(key);
+			if (h.getNumber() == number) {
+				key[k] = k; w++;
+				System.out.println(w + ". " + h.toString()); // 앞에 라인넘버, 여러명일때 사용하려고
+			} else if (h.getName().equals(name)) {
+				key[k] = k; w++;
+				System.out.println(w + ". "+h.toString());
 			}
-		}
-		return index;
+		 }
+		return key;
 	}
 
 	public void update() {
-		int index[] = search();
-		int num = index[0];
-		if (index[0] < 0) {
+		int key[] = search();
+		int k = key[0];
+		if (key[0] < 0) {
 			System.out.println("해당 선수를 찾을 수 없습니다.");
 			return;
-		} else if (index[1] > 0) { // 1번지가 값이 있을때, 최소 2개 이상
+		} else if (key[1] > 0) { // 1번지가 값이 있을때, 최소 2개 이상
 			int n = (int)chkNum("몇 번째 선수를 수정할까요?") - 1; //라인넘버-1이 인덱스번호
-			num = index[n];
+			k = key[n];
 		}
-		if (human[num] instanceof Pitcher) {
+		HumanDto h = human.get(k);
+		if (h instanceof Pitcher) {
 			int coNum = (int)chkNum("어떤 항목을 수정할까요?\n1.나이 2.방어률");
 			switch (coNum) {
 			case 1:	int age = (int)chkNum("입력");
-					human[num].setAge(age);
+					human.get(k).setAge(age);
 					break;
 			case 2: double defence = chkNum("입력");
-					((Pitcher)human[num]).setDefence(defence);
+					((Pitcher) human.get(k)).setDefence(defence);
 					break;
 			}
-		} else if (human[num] instanceof Batter) {
+		} else if (h instanceof Batter) {
 			int coNum = (int)chkNum("어떤 항목을 수정할까요?\n1.나이 2.타율");
 			switch (coNum) {
 			case 1: int age = (int)chkNum("입력");
-					human[num].setAge(age);
+					human.get(k).setAge(age);
 					break;
 			case 2: double hitAvg = chkNum("입력");
-					((Batter)human[num]).setHitAvg(hitAvg);
+					((Batter)human.get(k)).setHitAvg(hitAvg);
 					break;
 			}
 		}
@@ -143,19 +136,31 @@ public class MemberDao {
 	}
 
 	public void printAll() {
-		for (int i = 0; i < human.length; i++) {
-			if (human[i] != null && human[i].getNumber() != 0) {
-				System.out.println(human[i].toString());
-			}
+		Map<Integer, HumanDto> sortm = new TreeMap<Integer, HumanDto>();
+		Iterator<Integer> it = human.keySet().iterator();
+		while(it.hasNext()) {
+			int key = it.next();
+			HumanDto h = human.get(it.next());
+			if(key>2000) { key-=1000; }
+			sortm.put(key, h);
 		}
+		
+		it = sortm.keySet().iterator();
+		while(it.hasNext()) {
+			System.out.println( sortm.get(it.next()).toString()  );
+		}
+		
 	}
 
 	public void save() {
 		MemberSave ms = new MemberSave();
 		ms.clearfile(); // 저장 전 파일 초기화
-		for (int i = 0; i < human.length; i++) {
-			if (human[i] != null && human[i].getNumber() != 0) {
-				String text = human[i].saveString();
+		for (int i = 0; i < human.size(); i++) {
+			if (human.get(i) instanceof Pitcher) {
+				String text = ((Pitcher) human.get(i)).saveString();
+				ms.writefile(text);
+			} else if (human.get(i) instanceof Pitcher) {
+				String text = ((Pitcher) human.get(i)).saveString();
 				ms.writefile(text);
 			}
 		}System.out.println("저장되었습니다.");
@@ -164,46 +169,51 @@ public class MemberDao {
 	public void sorting() {
 		int num = (int)chkNum("어떤 항목으로 정렬할까요?(1.투수방어율 2.타자타율)");
 		switch(num) {
-			case 1 : 
-				for (int i = 0; i < human.length-2; i++) {
-					for (int j = i+1; j < human.length-1; j++) {
-						if (human[i] instanceof Pitcher && human[j] instanceof Pitcher) {
-							double a = ((Pitcher) human[i]).getDefence();
-							double b = ((Pitcher) human[j]).getDefence();
-							if (a < b) {swap(i, j);} //내림차순
-						}
-					}
-				}
-				for (int i = 0; i < human.length; i++) {
-					if (human[i]!=null && human[i].getNumber()!=0 && human[i] instanceof Pitcher) {
-						System.out.println(human[i].toString());
-					}
-				} break;
-			case 2 : 
-				for (int i = 0; i < human.length-2; i++) {
-					for (int j = i+1; j < human.length-1; j++) {
-						if (human[i] instanceof Batter && human[j] instanceof Batter) {
-							double a = ((Batter) human[i]).getHitAvg();
-							double b = ((Batter) human[j]).getHitAvg();
-							if (a < b) {swap(i, j);}
-						}
-					}
-				}
-				for (int i = 0; i < human.length; i++) {
-					if (human[i] != null && human[i].getNumber() != 0 && human[i] instanceof Batter) {
-						System.out.println(human[i].toString());
-					}
-				} break;
+			case 1 : defencerank(); break;
+			case 2 : hitrank(); break;
 		}
 	}
 
-	void swap(int i, int j) {
-		HumanDto tmp;
-		tmp = human[i];
-		human[i] = human[j];
-		human[j] = tmp;
+	void defencerank() {
+		Map<String, HumanDto> sm = new TreeMap<String, HumanDto>();
+		
+		Iterator<Integer> it = human.keySet().iterator();
+		while(it.hasNext()) {
+			HumanDto h = human.get(it.next());
+			if (h instanceof Pitcher) {
+				String key = ((Pitcher) h).getDefence() + "";
+				HumanDto c = sm.get(key);
+				if(c != null) {	key = key + "1"; }
+				sm.put(key, h);
+			}
+		}
+		
+		Iterator<String> its = sm.keySet().iterator();
+		while(it.hasNext()) {
+			System.out.println( sm.get(it.next()).toString() );
+		}
 	}
 
+	void hitrank() {
+		Map<String, HumanDto> sm = new TreeMap<String, HumanDto>();
+		
+		Iterator<Integer> it = human.keySet().iterator();
+		while(it.hasNext()) {
+			HumanDto h = human.get(it.next());
+			if (h instanceof Batter) {
+				String key = ((Batter) h).getHitAvg() + "";
+				HumanDto c = sm.get(key);
+				if(c != null) {	key = key + "1"; }
+				sm.put(key, h);
+			}
+		}
+		
+		Iterator<String> its = sm.keySet().iterator();
+		while(it.hasNext()) {
+			System.out.println( sm.get(it.next()).toString() );
+		}
+	}
+	
 	public int printMenu() { // 추가 삭제 검색 수정, 출력, 저장, 정렬, 종료
 		System.out.println("========================== M E N U =====================================");
 		System.out.println("| 1.선수추가  2.선수삭제  3.선수검색  4.선수수정  5.선수출력  6.저장  7.정렬  8.종료 |");
