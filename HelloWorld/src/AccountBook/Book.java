@@ -1,8 +1,11 @@
 package AccountBook;
 
-import java.text.SimpleDateFormat;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.List;
 import java.util.Scanner;
 
 public class Book {
@@ -14,6 +17,7 @@ public class Book {
 		ac.add(new AccountDto("2021-01-25", "교통비", "지출", 7000, "택시비"));
 		ac.add(new AccountDto("2021-01-26", "기타", "지출", 10000, "쇼핑"));
 		ac.add(new AccountDto("2021-01-27", "월급", "수입", 100000, "월급"));
+		DBjoin.initConnection();
 		loop();
 	}
 	
@@ -39,15 +43,30 @@ public class Book {
 
 	void insert() {
 		System.out.println("*입력항목 : 용도(ex.쇼핑), 분류(수입/지출), 금액, 내용");		// 항목 출력
-				
-		SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
-		String date = day.format(Calendar.getInstance().getTime());
+		//SimpleDateFormat day = new SimpleDateFormat("yyyy-MM-dd");
+		//String date = day.format(Calendar.getInstance().getTime());
 		String use = chkStr("용도");
 		String classify = chkStr("분류");
 		int money = chkNum("금액");
 		String memo = chkStr("내용");
+		//ac.add(ac.size(), new AccountDto(date, use, classify, money, memo));
 		
-		ac.add(ac.size(), new AccountDto(date, use, classify, money, memo));
+		String sql = "INSERT INTO ACCOUNT01 VALUES(SYSDATE,?,?,?,?)";
+		System.out.println(sql);
+		
+		Connection conn = DBjoin.getConnection();
+		PreparedStatement psmt = null;
+		
+		try { //"식비", "지출", 12000, "점심식사"
+			psmt = conn.prepareStatement(sql);
+			psmt.setString(1, use);
+			psmt.setString(2, classify);
+			psmt.setInt(3, money);
+			psmt.setString(4, memo);
+			psmt.executeUpdate();
+			System.out.println("추가 성공");
+		} catch (SQLException e) {System.out.println("추가 실패");}
+		finally {DBjoin.close(conn, psmt, null);}
 	}
 	
 	void delete() {
@@ -61,17 +80,17 @@ public class Book {
 	}
 	
 	void search() {
-		int index[] = serIndex(); 	// 이름검색
-		if(index[0]<0) { return; }; //검색 실패시 메뉴이동
-		serPrint(index);
+		List<AccountDto> list = serIndex(); 	// 이름검색
+		if(list == null) { return; }; //검색 실패시 메뉴이동
+		serPrint(list);
 	}
 	
-	int[] serIndex() { // 이름으로 인덱스 검색
-		int index[] = new int[ac.size()];
+	List<AccountDto> serIndex() { // 이름으로 인덱스 검색
+		/*int index[] = new int[ac.size()];
 		for (int i = 0; i < index.length; i++) {
 			index[i] = -1;
-		}
-		
+		}*/
+		List<AccountDto> list = new ArrayList<AccountDto>();
 		int k, w, i, num;
 		k = w = i = num = 0;
 		while(w<3) {
@@ -82,34 +101,93 @@ public class Book {
 		}
 		if (w==3) {
 			System.out.println("메뉴화면으로 돌아갑니다.");
-			return index;
+			return list;
 		}
 		
+		String sql = "SELECT * FROM ACCOUNT01 WHERE ? = ?";
+		System.out.println(sql);
+		
 		while(w<3) {	// 기회 3번
-			String ser = chkStr("해당내용");	// 입력 확인
 			if(num==1) {
-				for (int j = 0; j < ac.size(); j++) {
+				/*for (int j = 0; j < ac.size(); j++) {
 					AccountDto a = ac.get(j);
 					if(a.getDate().equals(ser)) {
 						index[k] = j;
 						k++;
 					}
-				}
+				}*/
+				System.out.println("검색할 날짜 >>");
+				int month = chkNum("월 = ");
+				int day = chkNum("일 = ");
+	
+				String smonth = (month < 10)? "0"+month : ""+month ;
+				String sday = (day < 10)? "0"+day : ""+ day ;
+				String sdate = 21 + smonth + sday;
+				
+				Connection conn = DBjoin.getConnection();
+				PreparedStatement psmt = null;
+				ResultSet rs = null;
+				
+				try {
+					psmt = conn.prepareStatement(sql);
+					psmt.setString(1, "TO_CHAR(ACCDATE,'YYMMDD')");
+					psmt.setString(2, sdate);
+					rs = psmt.executeQuery();
+					
+					while (rs.next()) {
+						String date = rs.getString("ACCDATE");
+						String use = rs.getString("ACCUSE");
+						String classify = rs.getString("ACCCLASSIFY");
+						int money = rs.getInt("ACCMONEY");
+						String memo = rs.getString("ACCMEMO");
+						
+						AccountDto dto = new AccountDto(date, use, classify, money, memo);
+						list.add(dto);
+					}
+					
+				} catch (SQLException e) {e.printStackTrace();}
+				finally {DBjoin.close(conn, psmt, rs);}
+				return list;
 			}
 			else if(num==2) {
-				for (int j = 0; j < ac.size(); j++) {
+				String ser = chkStr("해당내용");	// 입력 확인
+				/*for (int j = 0; j < ac.size(); j++) {
 					AccountDto a = ac.get(j);
 					if(a.getClassify().equals(ser)) {
 						index[k] = j;
 						k++;
 					}
-				}
+				}*/
+				Connection conn = DBjoin.getConnection();
+				PreparedStatement psmt = null;
+				ResultSet rs = null;
+				
+				try {
+					psmt = conn.prepareStatement(sql);
+					psmt.setString(1, "ACCCLASSIFY");
+					psmt.setString(2, ser);
+					rs = psmt.executeQuery();
+					
+					while (rs.next()) {
+						String date = rs.getString("ACCDATE");
+						String use = rs.getString("ACCUSE");
+						String classify = rs.getString("ACCCLASSIFY");
+						int money = rs.getInt("ACCMONEY");
+						String memo = rs.getString("ACCMEMO");
+						
+						AccountDto dto = new AccountDto(date, use, classify, money, memo);
+						list.add(dto);
+					}
+					
+				} catch (SQLException e) {e.printStackTrace();}
+				finally {DBjoin.close(conn, psmt, rs);}
+				return list;
 			}
-			if(index[0] > -1) { break; }
+			if(list == null) { break; }
 			System.out.println("내용을 찾을 수 없습니다.");
 			w++;
 		}
-		return index;
+		return list;
 	}
 	
 	void modify() {
@@ -142,15 +220,15 @@ public class Book {
 		System.out.println("수정되었습니다.");
 	}
 	
-	void serPrint(int index[]) {
+	void serPrint(List<AccountDto> list) {
 		int w = 0;
 		while(true) {
-			if(index[w]==-1) {
+			if(list == null) {
 				break;
 			}
 			System.out.print((w+1) + ". ");
-			for (int i = 0; i < index.length; i++) {
-				AccountDto a = ac.get(index[i]);
+			for (int i = 0; i < list.size(); i++) {
+				AccountDto a = list.get(i);
 				a.print();
 			}
 			w++;
