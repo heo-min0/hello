@@ -1,0 +1,79 @@
+초기설정(포멧을 하지 않는 이상 한번만)
+git config --global user.name "git ID"
+git config --global user.name "git email"
+
+push 방법
+1. git init -> .git 생성
+2. git add -> 임시저장소 .git에 데이터를 추가함
+3. git status -> .git에 상태 확인
+4. git commit -m "메세지" 
+5. git remote -v -> 연결상태 확인
+6. git remote add origin http://github.com/조장ID/해당프로젝트 파일
+7. git push origin master 
+
+pull 방법(pull은 자동병합, fetch 내려받기만 추후 병합따로 해야 함)
+1. 원하는 디스크에 파일 생성
+2. git init
+3. git remote add origin http://github.com/조장ID/해당프로젝트 파일
+4. git pull origin master
+
+branch 생성과 파일 올리는 방법
+1. git checkout -b branch 명 -> 브랜치 생성 또는 브랜치 확인
+2. git remote -v -> 연결확인
+3. git add . 
+4. git status
+5. git commit -m "massage"
+6. git push origin branch 명 -> origin에는 위에서 지정한 조장에 주소가 저장
+				해당 주소에 있는 branch를 생성하여 데이터를 push를 한다. 
+
+conflict (pull충돌)
+1. git checkout master         내려받은 브런치로 이동
+2. git pull origin master       해당 브런치 pull
+3. git checkout 내 브런치      작업 브런치로 이동
+4. git merge master             내브런치와 병합
+5. CONFLICT (content): Merge conflict in README.md   화면에서 충돌난 파일이름 확인
+6. 파일 수기 수정
+7. git add, commit, push, pull request
+
+강제 병합
+git pull origin 브런치명 --allow-unrelated-histories
+git merge --allow-unrelated-histories origin/master
+
+이그노어 파일 생성
+touch .gitignore
+
+커밋을 한 후 .gitignore파일을 생성시 캐시를 날리고 다시 생성
+git rm -r --cached
+
+푸쉬한 파일 삭제
+## 파일 이라면
+git rm --cached test.txt
+
+## 전체파일 이라면
+git rm --cached *.txt
+
+## 폴더 라면
+git rm --cached test/ -r
+
+///////////////파일 기입법//////////////
+# 특정 파일 fileName 제외하기
+fileName.js
+
+# 현재 경로에 있는 fileName_1 만 제외하기. (다른경로 fileName_1 말고)
+/fileName.js
+
+# 특정 폴더 node_module 안의 파일 다 제외하기
+node_module/
+
+# 특정 경로의 특정 파일 제외하기
+folder/my.txt
+
+# 특정 경로 아래의 모든 fileName_2 제외하기
+folder/**/fileName_2.txt
+
+# 특정 확장자 파일 다 제외하기
+*.txt
+
+# 예외 만들기
+!fileName.txt
+
